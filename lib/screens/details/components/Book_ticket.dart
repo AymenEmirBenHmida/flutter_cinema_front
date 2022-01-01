@@ -11,7 +11,8 @@ import '../../../models/globalV.dart';
 
 class Book_ticket extends StatefulWidget {
   Movie movie;
-  Book_ticket(this.movie);
+  int position;
+  Book_ticket(this.movie, this.position);
 
   // This widget is the root of your application.
   @override
@@ -155,6 +156,7 @@ class Book_ticket1 extends State<Book_ticket> {
           TextFormField(
               //  validator: Validator.validatePassword,
               obscureText: obscureText,
+              keyboardType: TextInputType.number,
               controller: passctrl,
               decoration: InputDecoration(
                 contentPadding:
@@ -266,30 +268,34 @@ class Book_ticket1 extends State<Book_ticket> {
   reservetickets() async {
     List<int> ticketList = [];
     String nomClient = namectrl.text;
+    int code = int.parse(passctrl.text);
     int i = 0;
-    for (var item in widget.movie.projection[0]["tickets"]) {
-      
+    for (var item in widget.movie.projection[widget.position]["tickets"]) {
       if (item["reservee"] == false &&
           i < int.parse(ticketNumberContrl.value.text)) {
-        
         ticketList.add(item["id"]);
         i++;
         log(item["id"].toString());
       }
     }
-    var body = json.encode({"nomClient": nomClient, "tickets": ticketList});
+    var body = json.encode({
+      "nomClient": nomClient,
+      "tickets": ticketList,
+      "codePaiement": code
+    });
     log(body);
-    final res = await http.post(
-        Uri.parse(GlobalV.url+"/payerTickets"),
+    final res = await http.post(Uri.parse(GlobalV.url + "payerTickets"),
         body: body,
         headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-                  'Authorization': "Bearer "+context.read<User>().token
-
-        });
-    if (res.statusCode == 200)
+          'Content-Type': 'application/json',
+          'Authorization': "Bearer " + context.read<User>().token
+        }).catchError((onError) {
+      log("error in booking ticket  =" + onError.toString());
+    });
+    if (res.statusCode == 200) {
       log("status 200");
-    else
-      log("status is not ok");
+      Navigator.pop(context);
+    } else
+      log("status is not ok " + res.statusCode.toString());
   }
 }

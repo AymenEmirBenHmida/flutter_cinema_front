@@ -8,16 +8,18 @@ import 'backdrop_rating.dart';
 import 'cast_and_crew.dart';
 import 'genres.dart';
 import 'title_duration_and_fav_btn.dart';
-class Body extends StatefulWidget {
-final Movie movie;
 
-  const Body({Key key, this.movie}) : super(key: key);
+class Body extends StatefulWidget {
+  final Movie movie;
+  final Function(int) onheureSelected;
+  const Body({Key key, this.movie, this.onheureSelected}) : super(key: key);
   @override
   _BodyState createState() => _BodyState();
 }
 
 class _BodyState extends State<Body> {
- @override
+  int postion = 0;
+  @override
   Widget build(BuildContext context) {
     // it will provide us total height and width
     Size size = MediaQuery.of(context).size;
@@ -62,7 +64,13 @@ class _BodyState extends State<Body> {
                 return SizedBox(
                   width: size.width / widget.movie.projection.length,
                   child: RaisedButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      setState(() {
+                        postion = (widget.movie.projection as List<dynamic>)
+                            .indexOf(e);
+                        widget.onheureSelected(postion);
+                      });
+                    },
                     child: Text("${e['seance']['heureDebut']} "),
                   ),
                 );
@@ -85,10 +93,18 @@ class _BodyState extends State<Body> {
                 vertical: kDefaultPadding / 2,
                 horizontal: kDefaultPadding,
               ),
-              child: Text(
-                getTicketLenght(widget.movie),
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 25),
-              ),
+              child: FutureBuilder<dynamic>(
+                  future: getTicketLenght(widget.movie, postion),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasData) {
+                      return Text(
+                        snapshot.data,
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 25),
+                      );
+                    }
+                    return CircularProgressIndicator();
+                  }),
             ),
           ),
           //CastAndCrew(casts: movie.cast),
@@ -96,12 +112,13 @@ class _BodyState extends State<Body> {
       ),
     );
   }
-  
-  getTicketLenght(Movie movie) {
+
+  getTicketLenght(Movie movie, int postion) async {
     int i = 0;
-    for (var item in movie.projection[0]["tickets"]) {
+    for (var item in movie.projection[postion]["tickets"]) {
       if (item["reservee"] == false) i++;
     }
+    setState(() {});
     return i.toString();
   }
 }

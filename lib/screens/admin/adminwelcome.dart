@@ -50,14 +50,15 @@ class _AdminwelcomeState extends State<Adminwelcome> {
           child: FutureBuilder<dynamic>(
               future: getCinemas(),
               builder: (context, snapshot) {
-                if (snapshot.data.length == 0)
+             
+                if (snapshot.hasData) {
+                     if (snapshot.data.length == 0)
                   return Center(
                     child: Text(
                       "No reservations yet.",
                       style: TextStyle(fontSize: 30),
                     ),
                   );
-                if (snapshot.hasData) {
                   return ListView.builder(
                     scrollDirection: Axis.vertical,
                     itemCount: snapshot.data.length,
